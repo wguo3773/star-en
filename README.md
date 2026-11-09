@@ -35,11 +35,11 @@ outputs; they are not LSAT-EN fitted results.
 Python 3.10 or later is required. Install the complete **STAR-EN** package:
 
 ```bash
-python -m pip install "star-en[analysis,survival] @ git+https://github.com/wguo3773/LSAT-EN.git"
+python -m pip install "star-en[analysis,survival] @ git+https://github.com/wguo3773/star-en.git"
 ```
 
-The repository retains its **LSAT-EN** URL, but the distribution is
-`star-en` and the public import is **`staren`**. Both SAT-EN and LSAT-EN are
+The repository and Python distribution are **star-en**; the public import
+is **`staren`**. Both SAT-EN and LSAT-EN are
 included; no separate tutorial adapter is needed. Existing `lsaten` imports
 remain compatible.
 
@@ -55,12 +55,16 @@ NumPy, SciPy, pandas and scikit-learn support the core estimators.
 
 ## Two Parts, Both Methods
 
-| Task | SAT-EN | LSAT-EN |
-|---|---|---|
-| Binary prediction | `SATBinary`, `SATBinaryCV` | `LSATBinary`, `LSATBinaryCV` |
-| Survival prediction | `SATCox`, `SATCoxCV` | `LSATCox`, `LSATCoxCV` |
-| Risk groups and RMST figure | `risk_scores`, `stratify_risk`, `plot_risk_stratification` | Same functions |
-| Pathway and miRNA figure | `pathway_scores`, `correlate_programs`, `plot_molecular_correlations` | Same functions |
+| Workflow | Package functions |
+|---|---|
+| SAT-EN prediction | `SATBinaryCV`, `SATCoxCV` |
+| LSAT-EN prediction | `LSATBinaryCV`, `LSATCoxCV` |
+| SAT-EN risk stratification | `stratify_risk`, plotting and correlation functions |
+| LSAT-EN risk stratification | Same functions, using LSAT-EN predictions |
+
+**Part 1: prediction** covers Workflows 1 and 2. **Part 2: risk stratification**
+covers Workflows 3 and 4, including risk-group/RMST and pathway/miRNA figures.
+Each workflow supports binary or time-to-event predictions.
 
 Both downstream workflows accept binary event probabilities or Cox risk
 scores. **RMST requires original follow-up times and event indicators**, even
@@ -74,13 +78,13 @@ generates predictions, tables, and both figure types for both methods and
 both outcomes:
 
 ```bash
-git clone https://github.com/wguo3773/LSAT-EN.git
-cd LSAT-EN
+git clone https://github.com/wguo3773/star-en.git
+cd star-en
 python -m pip install -e ".[analysis,survival]"
 python examples/star_workflows.py --output star_outputs
 ```
 
-The demonstration uses small synthetic data and toy gene sets, not patient
+The demonstration uses small synthetic data and demonstration gene sets, not patient
 study results. The [tutorial's saved clinical figures](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples)
 are shown with their model and analysis provenance.
 
@@ -91,71 +95,61 @@ No held-out target patients enter fitting, inner-fold preprocessing, or
 source-anchor estimation. The API is not limited to six layers, breast
 cancer, or age-defined cohorts.
 
-## 1. Binary Prediction
+## 1. SAT-EN Prediction
+
+SAT-EN uses elastic-net regularization on the target's deviation from the
+source anchor, without a separate tau penalty. Choose binary logistic or
+Cox time-to-event prediction.
+
+These examples assume aligned `X_source`, `X_train`, `X_test` matrices and
+one layer label per feature in `layers`. Training and test data must be
+separate. For fixed-horizon binary outcomes, use `binary_at_horizon` to
+exclude early-censored unknown outcomes and encode event-free status as 1.
+For Cox outcomes, use `survival_outcome(time, event)` and retain censoring.
 
 ```python
-from staren import LSATBinaryCV, make_binary_transfer, binary_metrics
+from staren import SATBinaryCV, SATCoxCV
 
-data = make_binary_transfer(
-    n_source=180, n_target=90, n_test=150,
-    n_features=36, block_size=6, sigma2_tl=0.25, random_state=42,
-)
-model = LSATBinaryCV(
-    lambdas=(0.02, 0.1), alphas=(0.5,), tau_grid=(0.0, 0.5, 2.0),
-    cv=3, coordinate_passes=1,
-)
-model.fit(
-    data["X_source"], data["y_source"],
-    data["X_target"], data["y_target"], groups=data["groups"],
-)
-probability = model.predict_proba(data["X_test"])[:, 1]
-print(binary_metrics(data["y_test"], probability))
-print(model.best_params_)
-print(model.feature_table().head())
+sat_binary = SATBinaryCV(cv=5, lambdas=(.01, .1), alphas=(.5,))
+sat_binary.fit(
+    X_source, y_source_binary, X_train, y_train_binary, groups=layers)
+sat_probability = sat_binary.predict_proba(X_test)[:, 1]
+
+sat_cox = SATCoxCV(cv=5, lambdas=(.01, .1), alphas=(.5,))
+sat_cox.fit(
+    X_source, y_source_survival, X_train, y_train_survival, groups=layers)
+sat_risk = sat_cox.predict(X_test)  # Higher = greater event risk.
+sat_survival = sat_cox.predict_survival_function(X_test, times=[2, 3, 4, 5])
 ```
 
-All 36 predictors are retained as model inputs. `groups` assigns one layer
-label to every feature. Real datasets can use labels such as `mRNA`, `miRNA`,
-`methylation`, `CNV`, `protein`, and `mutation`.
+## 2. LSAT-EN Prediction
 
-`predict_proba(X)[:,1]` always predicts **label 1**. For fixed-horizon
-survival, encode 1 as survival through the horizon and 0 as death by it.
-Patients censored before that horizon must be excluded from binary fitting;
-[`binary_at_horizon()`](docs/api.md) provides this conversion.
-
-## 2. Cox Survival Prediction
+LSAT-EN uses elastic-net regularization on target coefficients and separate
+layer-specific source-anchoring strengths, tuned with target-training CV.
+Use the same aligned input structure as above.
 
 ```python
-from staren import LSATCoxCV, make_survival_transfer, survival_metrics
+from staren import LSATBinaryCV, LSATCoxCV
 
-data = make_survival_transfer(
-    n_source=140, n_target=90, n_test=100,
-    n_features=36, block_size=6, random_state=43,
-)
-model = LSATCoxCV(
-    lambdas=(0.05, 0.15), alphas=(0.5,), tau_grid=(0.0, 0.5),
-    cv=3, coordinate_passes=1,
-)
-model.fit(
-    data["X_source"], data["y_source"],
-    data["X_target"], data["y_target"], groups=data["groups"],
-)
-risk = model.predict(data["X_test"])  # higher = higher event risk
-print(survival_metrics(
-    data["y_target"], data["y_test"], risk,
-    times=(2.0, 3.0, 4.0, 5.0), on_error="nan",
-))
-survival_probability = model.predict_survival_function(
-    data["X_test"], times=[2.0, 3.0, 4.0, 5.0],
-)
+lsat_binary = LSATBinaryCV(
+    cv=5, lambdas=(.01, .1), alphas=(.5,), tau_grid=(0., .1, 1.))
+lsat_binary.fit(
+    X_source, y_source_binary, X_train, y_train_binary, groups=layers)
+lsat_probability = lsat_binary.predict_proba(X_test)[:, 1]
+
+lsat_cox = LSATCoxCV(
+    cv=5, lambdas=(.01, .1), alphas=(.5,), tau_grid=(0., .1, 1.))
+lsat_cox.fit(
+    X_source, y_source_survival, X_train, y_train_survival, groups=layers)
+lsat_risk = lsat_cox.predict(X_test)
+lsat_survival = lsat_cox.predict_survival_function(X_test, times=[2, 3, 4, 5])
 ```
 
-Synthetic follow-up is in **years**. For actual data measured in days, use
-matching day-valued evaluation times. `survival_outcome(time,event)` creates
-the required structured labels, with event=1 for an observed death/event.
-Target-training outcomes estimate the baseline hazard and censoring weights.
-Unsupported IPCW evaluations raise by default, or return NaN **with the
-reason** when `on_error="nan"`; missing AUC is never replaced with zero.
+Evaluation horizons must use the same units as follow-up times. Check
+`converged_` before interpreting a fit. The
+[complete runnable example](examples/star_workflows.py) defines every input;
+the [tutorial examples](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples)
+show binary and time-to-event code for all four workflows.
 
 ## Inputs and Outputs
 
@@ -189,7 +183,7 @@ grid optimum. Set `tau_search="grid"` for an exhaustive Cartesian search
 when feasible. Nonconverged candidates cannot win CV. Use fixed-parameter
 `LSATBinary` / `LSATCox` when tuning is not needed. [Full API](docs/api.md)
 
-## 3. Fair Comparisons and Repeated Target Splits
+## Fair Comparisons and Repeated Target Splits
 
 ```python
 overall = LSATBinaryCV(strategy="pooled", cv=3)
@@ -207,26 +201,83 @@ parameters or report only the most favorable outer split. Repeated splits
 share patients: their SD describes split variability, not independent-cohort
 uncertainty. Source/target definitions, end points and time units are user inputs.
 
-## 4. Biomarker Prioritization
+## 3. SAT-EN Risk Stratification
+
+Use held-out SAT-EN predictions for **both downstream figure types**:
+risk groups with RMST, and risk-score correlations with pathways/miRNAs.
+The cutoff below is derived from training predictions, not test outcomes.
 
 ```python
-from staren import stable_features, priority_overlap
-
-# repeated_models: independently refitted models with the same input columns
-stability = stable_features(
-    repeated_models, min_frequency=0.8, min_sign_consistency=0.8,
+import numpy as np
+from staren import (
+    risk_scores, stratify_risk, plot_risk_stratification,
+    pathway_scores, correlate_programs, plot_molecular_correlations,
 )
-top_markers = stability.query("stable").head(50)
-# compare = priority_overlap({"LSAT": stability, "Overall": overall_stability})
+
+risk = risk_scores(sat_cox, X_test)
+cutoff = float(np.median(risk_scores(sat_cox, X_train)))
+sat_groups = stratify_risk(
+    risk, y_test_survival, horizon=5, cutoff=cutoff,
+    n_bootstrap=1000, random_state=42,
+)
+sat_groups["composition"].to_csv("sat_risk_groups.csv", index=False)
+sat_groups["rmst"].to_csv("sat_rmst.csv", index=False)
+plot_risk_stratification(sat_groups).savefig(
+    "sat_risk_rmst.pdf", bbox_inches="tight")
+
+# Molecular rows must match the held-out X_test patients in the same order.
+scores = pathway_scores(
+    expression_test, hallmark_gene_sets, reference=expression_train)
+sat_pathways = correlate_programs(risk, scores)
+sat_mirnas = correlate_programs(risk, mirna_test)
+sat_pathways.to_csv("sat_pathways.csv", index=False)
+sat_mirnas.to_csv("sat_mirnas.csv", index=False)
+plot_molecular_correlations(
+    sat_pathways, sat_mirnas, significance="p", threshold=.05,
+).savefig("sat_pathways_mirna.pdf", bbox_inches="tight")
 ```
 
-Priority is absolute median nonzero standardized coefficient x selection
-frequency. Positive binary coefficients increase model-predicted odds of
-label 1; positive Cox coefficients increase event hazard, conditional on
-other predictors. Priority-list absence is not necessarily a zero coefficient.
-Markers remain candidates, not validated mechanisms or treatment predictors.
-The package does not bundle miRDB data, infer regulatory interactions from
-coefficient signs, or automatically establish pathway enrichment.
+For binary SAT-EN, replace the risk and cutoff with
+`risk_scores(sat_binary, X_test, event_class=0)` and a prespecified
+probability cutoff such as `0.5`. The remaining functions are unchanged.
+**Retain original follow-up and event records for RMST**, even when the
+predictions come from a binary model.
+
+## 4. LSAT-EN Risk Stratification
+
+The same public functions generate both figures using held-out LSAT-EN
+predictions. Use the fitted LSAT model from Workflow 2 and patient-aligned
+molecular inputs.
+
+```python
+risk = risk_scores(lsat_cox, X_test)
+cutoff = float(np.median(risk_scores(lsat_cox, X_train)))
+lsat_groups = stratify_risk(
+    risk, y_test_survival, horizon=5, cutoff=cutoff,
+    n_bootstrap=1000, random_state=42,
+)
+lsat_groups["composition"].to_csv("lsat_risk_groups.csv", index=False)
+lsat_groups["rmst"].to_csv("lsat_rmst.csv", index=False)
+plot_risk_stratification(lsat_groups).savefig(
+    "lsat_risk_rmst.pdf", bbox_inches="tight")
+
+lsat_pathways = correlate_programs(risk, scores)
+lsat_mirnas = correlate_programs(risk, mirna_test)
+lsat_pathways.to_csv("lsat_pathways.csv", index=False)
+lsat_mirnas.to_csv("lsat_mirnas.csv", index=False)
+plot_molecular_correlations(
+    lsat_pathways, lsat_mirnas, significance="p", threshold=.05,
+).savefig("lsat_pathways_mirna.pdf", bbox_inches="tight")
+```
+
+For binary LSAT-EN, use
+`risk_scores(lsat_binary, X_test, event_class=0)` and a prespecified
+probability cutoff such as `0.5`. Pathway gene sets must be supplied by
+the user; demonstration sets are not biological Hallmark pathways.
+RMST confidence intervals are conditional patient-bootstrap intervals, not
+full model-development uncertainty. Molecular correlations are descriptive,
+not proof of causality. Both nominal p-values and BH-adjusted q-values are
+returned; use a prespecified significance rule.
 
 ## Example Outputs
 
