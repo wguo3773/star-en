@@ -12,7 +12,7 @@
 
 ## Overview
 
-![STAR-EN main workflow: SAT-EN and LSAT-EN prediction and risk stratification](assets/star-en-main-workflow.svg)
+![STAR-EN main workflow: SAT-EN and LSAT-EN prediction and risk stratification](assets/star-en-workflow-20261109.svg)
 
 STAR-EN is a Python package for prediction and risk stratification in
 underrepresented populations with limited target-cohort data. It combines
