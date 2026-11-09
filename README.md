@@ -1,4 +1,22 @@
-# LSAT-EN
+# STAR-EN
+
+**Source-Anchored Transfer and Adaptive Regularization Elastic Net**
+
+One Python package includes **SAT-EN and LSAT-EN**, each with binary and
+time-to-event prediction, risk stratification/RMST, and pathway/miRNA
+correlation analysis. Import the public API from `staren`; existing `lsaten`
+imports remain compatible. Source is hosted in the existing LSAT-EN repository.
+
+| Workflow | SAT-EN | LSAT-EN |
+|---|---|---|
+| Binary prediction | `SATBinary`, `SATBinaryCV` | `LSATBinary`, `LSATBinaryCV` |
+| Survival prediction | `SATCox`, `SATCoxCV` | `LSATCox`, `LSATCoxCV` |
+| Risk groups and RMST figure | `risk_scores`, `stratify_risk`, `plot_risk_stratification` | Same public functions |
+| Pathway and miRNA figure | `pathway_scores`, `correlate_programs`, `plot_molecular_correlations` | Same public functions |
+
+Both downstream workflows accept binary event probabilities or Cox risk
+scores. RMST always requires the original follow-up times and event indicators,
+not binary labels alone. See [four worked cases](docs/star-workflows.md).
 
 ### Layered Source-Anchored Transfer Elastic Net
 
@@ -34,10 +52,11 @@ construction. See the [mathematical specification](docs/methods.md).
 Python 3.10+ is required. Install directly from GitHub:
 
 ```bash
-python -m pip install "lsat-en[survival] @ git+https://github.com/wguo3773/LSAT-EN.git"
+python -m pip install "star-en[analysis,survival] @ git+https://github.com/wguo3773/LSAT-EN.git"
 ```
 
 The `survival` extra supplies scikit-survival's C-index and IPCW AUC metrics.
+The `analysis` extra supplies lifelines and matplotlib for RMST and both figure types.
 Binary/Cox fitting itself requires NumPy, SciPy, pandas and scikit-learn.
 Alternatively, clone and install locally:
 
