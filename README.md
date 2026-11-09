@@ -1,82 +1,100 @@
 # STAR-EN
 
-**Source-Anchored Transfer and Adaptive Regularization Elastic Net**
+### Source-Anchored Transfer and Adaptive Regularization with Elastic Net
 
-One Python package includes **SAT-EN and LSAT-EN**, each with binary and
-time-to-event prediction, risk stratification/RMST, and pathway/miRNA
-correlation analysis. Import the public API from `staren`; existing `lsaten`
-imports remain compatible. Source is hosted in the existing LSAT-EN repository.
+**Multi-omics prediction and risk stratification for underrepresented populations.**
 
-| Workflow | SAT-EN | LSAT-EN |
-|---|---|---|
-| Binary prediction | `SATBinary`, `SATBinaryCV` | `LSATBinary`, `LSATBinaryCV` |
-| Survival prediction | `SATCox`, `SATCoxCV` | `LSATCox`, `LSATCoxCV` |
-| Risk groups and RMST figure | `risk_scores`, `stratify_risk`, `plot_risk_stratification` | Same public functions |
-| Pathway and miRNA figure | `pathway_scores`, `correlate_programs`, `plot_molecular_correlations` | Same public functions |
+[**Tutorial website**](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/) |
+[**Installation**](#installation) |
+[**Four worked examples**](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples) |
+[API reference](docs/api.md) |
+[Download source](dist/star_en-0.2.0.tar.gz)
 
-Both downstream workflows accept binary event probabilities or Cox risk
-scores. RMST always requires the original follow-up times and event indicators,
-not binary labels alone. See [four worked cases](docs/star-workflows.md).
+## Overview
 
-### Layered Source-Anchored Transfer Elastic Net
+![STAR-EN main workflow: SAT-EN and LSAT-EN prediction and risk stratification](assets/star-en-main-workflow.svg)
 
-**Binary and censored survival prediction with layer-specific borrowing,
-elastic-net regularization, and interpretable coefficients.**
+STAR-EN is a Python package for prediction and risk stratification in
+underrepresented populations with limited target-cohort data. It combines
+**SAT-EN**, which uses elastic-net regularization on target deviations from a
+source coefficient anchor, and **LSAT-EN**, which separately adapts borrowing
+strength across molecular layers. Both methods support **binary logistic**
+and **Cox time-to-event** prediction. Their held-out target predictions can
+then be used for low- and high-risk grouping, restricted mean survival or
+event-free time (RMST) comparisons, and correlations with pathway scores and
+miRNA abundance. The package provides functions to export the underlying
+tables and generate both risk/RMST and molecular-correlation figures.
 
-LSAT-EN fits a source-only elastic-net anchor, then fits the target-cohort
-likelihood with a separate borrowing weight for each omics layer. It supports
-binary logistic and Cox proportional-hazards outcomes, target-training
-cross-validation, pooled and target-only EN baselines, and repeated-fit
-biomarker prioritization.
-
-**The package uses all features you supply. There is no separate screening,
-SIS, top-K, or feature-budget selection step.** Elastic net can assign zero
-coefficients during model fitting; this is distinct from prescreening inputs.
-The API is not limited to breast cancer, six layers, or age-defined cohorts.
-
-[Installation](#installation) | [Binary](#1-binary-prediction) |
-[Cox](#2-cox-survival-prediction) | [Inputs and outputs](#inputs-and-outputs) |
-[Tutorial](docs/tutorial.md) | [API](docs/api.md) | [Methods](docs/methods.md) |
-[Study background](docs/background.md)
-
-## Workflow
-
-![Binary and Cox LSAT-EN workflow](assets/lsat-workflow.png)
-
-No held-out target test patients participate in `fit()`. Within inner CV,
-validation patients are excluded from preprocessing and source-anchor
-construction. See the [mathematical specification](docs/methods.md).
+The main figure is the same figure shown on the
+[STAR-EN tutorial website](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#overview).
+Its embedded mini-plots are saved Overall RSF illustrations of downstream
+outputs; they are not LSAT-EN fitted results.
 
 ## Installation
 
-Python 3.10+ is required. Install directly from GitHub:
+Python 3.10 or later is required. Install the complete **STAR-EN** package:
 
 ```bash
 python -m pip install "star-en[analysis,survival] @ git+https://github.com/wguo3773/LSAT-EN.git"
 ```
 
-The `survival` extra supplies scikit-survival's C-index and IPCW AUC metrics.
-The `analysis` extra supplies lifelines and matplotlib for RMST and both figure types.
-Binary/Cox fitting itself requires NumPy, SciPy, pandas and scikit-learn.
-Alternatively, clone and install locally:
+The repository retains its **LSAT-EN** URL, but the distribution is
+`star-en` and the public import is **`staren`**. Both SAT-EN and LSAT-EN are
+included; no separate tutorial adapter is needed. Existing `lsaten` imports
+remain compatible.
+
+Verify all four estimator imports:
+
+```python
+from staren import SATBinaryCV, SATCoxCV, LSATBinaryCV, LSATCoxCV
+```
+
+The `analysis` extra supplies lifelines and matplotlib for RMST and plotting.
+The `survival` extra supplies scikit-survival for C-index and IPCW AUC.
+NumPy, SciPy, pandas and scikit-learn support the core estimators.
+
+## Two Parts, Both Methods
+
+| Task | SAT-EN | LSAT-EN |
+|---|---|---|
+| Binary prediction | `SATBinary`, `SATBinaryCV` | `LSATBinary`, `LSATBinaryCV` |
+| Survival prediction | `SATCox`, `SATCoxCV` | `LSATCox`, `LSATCoxCV` |
+| Risk groups and RMST figure | `risk_scores`, `stratify_risk`, `plot_risk_stratification` | Same functions |
+| Pathway and miRNA figure | `pathway_scores`, `correlate_programs`, `plot_molecular_correlations` | Same functions |
+
+Both downstream workflows accept binary event probabilities or Cox risk
+scores. **RMST requires original follow-up times and event indicators**, even
+when the model is binary. Pathway correlations require patient-aligned
+expression or precomputed pathway scores.
+
+Follow the [online examples](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples)
+for prediction and risk stratification with each method, or read the
+[four-case Python guide](docs/star-workflows.md). The runnable demonstration
+generates predictions, tables, and both figure types for both methods and
+both outcomes:
 
 ```bash
 git clone https://github.com/wguo3773/LSAT-EN.git
 cd LSAT-EN
-python -m pip install -e ".[dev,survival]"
-python -m pytest -q
-python examples/quickstart.py
+python -m pip install -e ".[analysis,survival]"
+python examples/star_workflows.py --output star_outputs
 ```
 
-The package is distributed here as Python source and wheel artifacts, not
-claimed to be published on PyPI. Runtime grows with feature count and search
-size; all-feature input does not imply that an exhaustive six-layer tau grid
-will be inexpensive. Dense input matrices are currently required.
+The demonstration uses small synthetic data and toy gene sets, not patient
+study results. The [tutorial's saved clinical figures](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples)
+are shown with their model and analysis provenance.
+
+**All supplied features enter fitting; there is no separate SIS or feature-budget
+selection step.** LSAT-EN can set final coefficients to zero. SAT-EN sparsity
+applies to deviations from the source, not necessarily final coefficients.
+No held-out target patients enter fitting, inner-fold preprocessing, or
+source-anchor estimation. The API is not limited to six layers, breast
+cancer, or age-defined cohorts.
 
 ## 1. Binary Prediction
 
 ```python
-from lsaten import LSATBinaryCV, make_binary_transfer, binary_metrics
+from staren import LSATBinaryCV, make_binary_transfer, binary_metrics
 
 data = make_binary_transfer(
     n_source=180, n_target=90, n_test=150,
@@ -108,7 +126,7 @@ Patients censored before that horizon must be excluded from binary fitting;
 ## 2. Cox Survival Prediction
 
 ```python
-from lsaten import LSATCoxCV, make_survival_transfer, survival_metrics
+from staren import LSATCoxCV, make_survival_transfer, survival_metrics
 
 data = make_survival_transfer(
     n_source=140, n_target=90, n_test=100,
@@ -148,15 +166,15 @@ reason** when `on_error="nan"`; missing AUC is never replaced with zero.
 | `groups` | One layer label per feature, in column order |
 | `feature_names` | Optional unique feature names; inferred from DataFrame columns |
 | `lambdas`, `alphas` | Candidate elastic-net strengths and L1 fractions |
-| `tau_grid` | Candidate layer weights, shared sequence or layer-to-sequence dictionary |
+| `tau_grid` | LSAT-EN candidate layer weights, shared sequence or layer-to-sequence dictionary |
 | `source_lam`, `source_alpha` | Fixed source-anchor regularization settings |
 | `cv`, `random_state` | Target inner folds and fold reproducibility |
 
 | Output | Meaning |
 |---|---|
-| `best_params_` | Selected lambda, alpha and layer-specific tau values |
+| `best_params_` | Selected lambda and alpha; layer-specific tau for LSAT-EN |
 | `cv_results_` | Tried settings, fold losses, mean validation loss and convergence |
-| `feature_table()` | Every input feature, layer, nonzero flag, raw/standardized coefficient, source anchor and tau |
+| `feature_table()` | Every input feature, coefficients and source anchor; SAT deviations or LSAT tau |
 | `n_features_in_`, `n_nonzero_` | Number supplied and number with absolute standardized coefficient >1e-6 |
 | `coef_`, `coef_standardized_` | Coefficients in input and standardized units |
 | `predict_proba()` | Binary class probabilities |
@@ -192,7 +210,7 @@ uncertainty. Source/target definitions, end points and time units are user input
 ## 4. Biomarker Prioritization
 
 ```python
-from lsaten import stable_features, priority_overlap
+from staren import stable_features, priority_overlap
 
 # repeated_models: independently refitted models with the same input columns
 stability = stable_features(
@@ -294,6 +312,9 @@ Clinical use requires independent validation and appropriate study oversight.
 
 ## Citation
 
-Wanru Guo, Binbin Wang, and Curtis Tatsuoka. *LSAT-EN: Layered Source-Anchored
-Transfer Elastic Net*. Python software, version 0.1.0 (2026).
+Wanru Guo, Binbin Wang, and Curtis Tatsuoka. *STAR-EN: Source-Anchored Transfer
+and Adaptive Regularization with Elastic Net*. Python software, version 0.2.0 (2026).
+
+[Online tutorial](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/) |
+[Breast cancer methods preprint](https://doi.org/10.64898/2026.11.01.763494).
 
