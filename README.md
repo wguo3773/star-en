@@ -253,42 +253,6 @@ dataset and not a reproduction of the manuscript tables.
 [Cox coefficients](docs/example-output/cox-features.csv) |
 [Selected binary parameters](docs/example-output/binary-best-parameters.json).
 
-## Manuscript Abstract
-
-**Background:** Younger breast cancer patients (<50 years) often present with
-more aggressive disease and distinct molecular characteristics, yet predictive
-models for this group are underpowered due to small sample sizes. Most existing
-models are built on older populations and may not translate directly,
-particularly across multiple omics data types. To address this, we developed
-Layered Source-Anchored Transfer Elastic Net (LSAT-EN), which adaptively borrows
-from the older source cohort while allowing borrowing strength to vary across
-omics layers according to their similarity between source and target cohorts,
-while performing elastic-net variable selection.
-
-**Methods:** Patients aged >=60, >=55, and >=50 years were used as the source
-to improve prediction in patients aged <50 years. LSAT-EN was evaluated in
-group-correlated simulations and in TCGA-BRCA integrating six omics layers.
-Binary survival at 2-4 years was assessed by AUC; censored survival by Harrell's
-C-index and 2-5-year inverse probability of censoring weighted (IPCW) AUC.
-
-**Results:** In simulation, LSAT-EN achieved the highest AUC under moderate
-source-target heterogeneity ($\sigma_{\mathrm{TL}}^2=0.25$; 0.747-0.802),
-outperforming GAS-EN (0.735-0.767), Overall EN (0.683-0.710), Individual EN
-(0.646-0.767), and glmtrans EN (0.640-0.733) across target-training sample sizes
-($n_T$). Its advantage was greatest under higher source-target heterogeneity
-($\sigma_{\mathrm{TL}}^2=4$), particularly with small $n_T$, where LSAT-EN
-achieved AUCs of 0.689-0.789 compared with 0.590-0.771 across competing methods.
-In TCGA-BRCA data, LSAT-EN improved discrimination relative to Overall and
-Individual EN in all reported binary and Cox models across time horizons and
-source age groups. The method also identified clinically and biologically
-relevant mRNA and miRNA features, as well as candidate miRNA-mRNA pairs,
-supporting its potential for biomarker discovery.
-
-**Conclusion:** LSAT-EN is a transfer-learning method for improving prediction
-for younger breast cancer patients. The framework may support prediction in
-other underrepresented populations with limited target-cohort data to advance
-cancer-disparity machine-learning research.
-
 ## Simulation Figure and Settings
 
 ![Manuscript illustration: binary simulations across source-target heterogeneity](assets/manuscript-binary-simulation.png)
@@ -312,9 +276,8 @@ Clinical use requires independent validation and appropriate study oversight.
 
 ## Citation
 
-Wanru Guo, Binbin Wang, and Curtis Tatsuoka. *STAR-EN: Source-Anchored Transfer
-and Adaptive Regularization with Elastic Net*. Python software, version 0.2.0 (2026).
+Please cite the method references listed on the [STAR-EN tutorial website](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/):
 
-[Online tutorial](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/) |
-[Breast cancer methods preprint](https://doi.org/10.64898/2026.11.01.763494).
+1. Guo, W., & Tatsuoka, C. (2026). Transfer learning improves multi-omics survival prediction for black patients with pediatric AML using white target-AML patients as the source cohort. *Blood* supplement (forthcoming). ASH 2026, Publication No. 2581.
 
+2. Guo, W., Wang, B., & Tatsuoka, C. (2026). Layer-Specific Source-Anchored Transfer Learning for Multi-Omics Survival Prediction in Younger Breast Cancer Patients. *bioRxiv*. [https://doi.org/10.64898/2026.11.01.763494](https://doi.org/10.64898/2026.11.01.763494).
