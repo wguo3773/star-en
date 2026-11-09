@@ -1,0 +1,3 @@
+subgroup,n_low,n_high,difference,ci_low,ci_high,bootstrap_valid,status
+Overall,17,23,0.11774724027991801,0.07294324252778203,0.15668512783415656,30,estimated
+Synthetic subgroup,9,11,0.09845942251101347,0.03394187494632519,0.1544057720973053,30,estimated

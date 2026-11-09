@@ -4,9 +4,9 @@
 
 **Multi-omics prediction and risk stratification for underrepresented populations.**
 
-[**Tutorial website**](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/) |
+[**Tutorial website**](https://wguo3773.github.io/star-en/) |
 [**Installation**](#installation) |
-[**Four worked examples**](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples) |
+[**Four worked examples**](https://wguo3773.github.io/star-en/#examples) |
 [API reference](docs/api.md) |
 [Download source](dist/star_en-0.2.0.tar.gz)
 
@@ -26,7 +26,7 @@ miRNA abundance. The package provides functions to export the underlying
 tables and generate both risk/RMST and molecular-correlation figures.
 
 The main figure is the same figure shown on the
-[STAR-EN tutorial website](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#overview).
+[STAR-EN tutorial website](https://wguo3773.github.io/star-en/#overview).
 Its embedded mini-plots are saved Overall RSF illustrations of downstream
 outputs; they are not LSAT-EN fitted results.
 
@@ -71,7 +71,7 @@ scores. **RMST requires original follow-up times and event indicators**, even
 when the model is binary. Pathway correlations require patient-aligned
 expression or precomputed pathway scores.
 
-Follow the [online examples](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples)
+Follow the [online examples](https://wguo3773.github.io/star-en/#examples)
 for prediction and risk stratification with each method, or read the
 [four-case Python guide](docs/star-workflows.md). The runnable demonstration
 generates predictions, tables, and both figure types for both methods and
@@ -85,7 +85,7 @@ python examples/star_workflows.py --output star_outputs
 ```
 
 The demonstration uses small synthetic data and demonstration gene sets, not patient
-study results. The [tutorial's saved clinical figures](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples)
+study results. The [tutorial's saved clinical figures](https://wguo3773.github.io/star-en/#examples)
 are shown with their model and analysis provenance.
 
 **All supplied features enter fitting; there is no separate SIS or feature-budget
@@ -148,7 +148,7 @@ lsat_survival = lsat_cox.predict_survival_function(X_test, times=[2, 3, 4, 5])
 Evaluation horizons must use the same units as follow-up times. Check
 `converged_` before interpreting a fit. The
 [complete runnable example](examples/star_workflows.py) defines every input;
-the [tutorial examples](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/#examples)
+the [tutorial examples](https://wguo3773.github.io/star-en/#examples)
 show binary and time-to-event code for all four workflows.
 
 ## Inputs and Outputs
@@ -327,7 +327,7 @@ Clinical use requires independent validation and appropriate study oversight.
 
 ## Citation
 
-Please cite the method references listed on the [STAR-EN tutorial website](https://source-anchored-transfer-tutorial.prmjppx7jh.chatgpt.site/):
+Please cite the method references listed on the [STAR-EN tutorial website](https://wguo3773.github.io/star-en/):
 
 1. Guo, W., & Tatsuoka, C. (2026). Transfer learning improves multi-omics survival prediction for black patients with pediatric AML using white target-AML patients as the source cohort. *Blood* supplement (forthcoming). ASH 2026, Publication No. 2581.
 

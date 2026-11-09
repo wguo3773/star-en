@@ -1,0 +1,59 @@
+.intro .star-wordmark {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 19px;
+  padding: 0 6px 14px;
+  border-bottom: 1px solid #d4e3e0;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 54px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0;
+  color: var(--teal);
+}
+.star-wordmark em { color: var(--rose); font-style: italic; }
+.star-expansion {
+  max-width: 760px;
+  margin: 0 auto 13px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  color: var(--ink);
+}
+.star-family { margin: 0 auto 16px; color: var(--teal); font-size: 13px; font-weight: 600; }
+.star-family span { padding: 0 10px; color: var(--rose); font-weight: 400; }
+.main-workflow-figure { margin: 22px 0 30px; }
+.main-workflow-figure .zoom { border: 0; }
+.main-workflow-figure .zoom img { width: 100%; height: auto; max-height: none; }
+.overview-copy { font-size: 16px; line-height: 1.85; }
+.overview-copy h3 { margin: 25px 0; }
+.citations { border-top: 1px solid var(--line); margin-top: 35px; padding-top: 24px; }
+.citations p { font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .intro .star-wordmark { font-size: 42px; }
+  .star-expansion { font-size: 15px; max-width: 340px; }
+  nav { overflow-x: auto; padding-bottom: 5px; }
+  .section-heading a { font-size: 12px; }
+  .overview-copy { font-size: 15px; }
+}
+@media (max-width: 360px) {
+  .intro .star-wordmark { font-size: 38px; }
+}
+.case-code { margin: 24px 0 36px; border-top: 1px solid #dce3e6; padding-top: 18px; }
+.case-code h4 { font-size: 18px; margin: 0 0 12px; }
+.case-code pre { max-height: 520px; overflow: auto; max-width: 100%; }
+.case-code .copy-example { border: 1px solid #aab8bd; background: white; color: #245b64; padding: 7px 14px; cursor: pointer; }
+.case-code .actions { flex-wrap: wrap; }
+.example-setup { padding-bottom: 16px; }
+.intro { background: #eff7f5; padding: 32px 24px 36px; margin: -30px -30px 32px; border-bottom: 1px solid #d8e7e3; }
+.intro .subtitle { font-size: 17px; max-width: 760px; margin-left: auto; margin-right: auto; }
+.intro .actions { justify-content: center; flex-wrap: wrap; }
+.intro .eyebrow { font-size: 12px; }
+.main-workflow-figure { max-width: 1040px; margin-left: auto; margin-right: auto; }
+.part-title { font-size: 27px; }
+@media (max-width: 760px) {
+  .intro { margin: -30px -18px 24px; padding: 26px 18px 30px; }
+  .intro .subtitle { font-size: 16px; }
+}
